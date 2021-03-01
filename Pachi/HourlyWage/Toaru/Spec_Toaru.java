@@ -19,6 +19,22 @@
 import java.util.Map;
 import java.util.HashMap;
 
+class Pair<T, U> {
+    public T value1;
+    public U value2;
+
+    Pair(T x, U y) {
+      value1 = x;
+      value2 = y;
+    }
+  
+    T first() { return value1; }
+    U second() { return value2; }
+    void setFirst(T x) { value1 = x; }
+    void setSecond(U y) { value2 = y; }
+
+}
+
 public class Spec_Toaru {
 
     /**
