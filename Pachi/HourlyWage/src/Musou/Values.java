@@ -1,4 +1,4 @@
-package Musou;
+//package Musou;
 
 public class Values {
     
@@ -8,7 +8,7 @@ public class Values {
      */
 
     static double kaitenritu = 20;
-    static double round_base = 140;
+    static double round_base = 142.54;
     
     // いまの台のボーダーを計算する
     static double Calc_my_border(Spec_Musou sp){

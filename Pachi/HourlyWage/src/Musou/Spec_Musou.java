@@ -1,4 +1,4 @@
-package Musou;
+//package Musou;
 
 
 /**
@@ -90,16 +90,35 @@ public class Spec_Musou {
         
         // 確変中の1回の大当たりの平均ラウンド数
         double round_num_kakuhen = 0;
+
         for(Integer num : DB.keySet()){
             round_num_kakuhen += (double)num * DB.get(num).second();
         }
-        
+
         // 通常時の1回の大当たりの平均ラウンド数
         double round_num_normal = 0;
+
         for(Integer num : NB.keySet()){
             round_num_normal += (double)num * NB.get(num).second();
         }
-        double round = (round_num_kakuhen*(chain_ave-1)+round_num_normal)*kakuhen_prob/100+round_num_normal*normal_prob/100;
+
+        /** 
+            トータルのラウンド数を求める。
+            
+            時短を駆け抜ける確率はnormal_probでその場合はround_num_normalのみ。
+            
+            時短中に当たる確率は1-through_prob(319.7, 100)でその場合は
+            初回6R + 時短中の当たり + 確変中の連チャン = round_num_normal + round_num_kakuhen + round_num_kakuhen*(chain_ave-1)
+            = round_num_normal + round_num_kakuhen*chain_ave
+
+            確変突入率は50％でその場合は
+            round_num_kakuhen * (chain_ave-1) + round_num_normal
+
+        */
+        double jitan = round_num_normal*normal_prob/100;
+        double jitan_atari = (round_num_normal+round_num_kakuhen*chain_ave)*(1-through_prob(319.7, 100))*0.5;
+        double kakuhen = (round_num_kakuhen*(chain_ave-1) + round_num_normal)*0.5;
+        double round = jitan + jitan_atari + kakuhen;
         return round;
     }
     
@@ -134,7 +153,12 @@ public class Spec_Musou {
      */
 
     double getDedama_per_jack(){
-    	double dedama_tyokugekikomi = ((dedama_per_kakuhen+ dedama_per_kakuhen1kai) * (1-through_prob(319.7, 100)) + NB.get(6).first()*normal_prob/100)*0.5+dedama_per_kakuhen*0.5;
+        
+        double jitan = NB.get(6).first()*normal_prob/100;
+        double jitan_atari = (dedama_per_kakuhen + dedama_per_kakuhen1kai) * (1-through_prob(319.7, 100)) * 0.5;
+        double kakuhen = dedama_per_kakuhen * 0.5;
+
+    	double dedama_tyokugekikomi = jitan_atari + jitan + kakuhen;
     	return dedama_tyokugekikomi; 
     }
 

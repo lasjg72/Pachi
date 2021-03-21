@@ -1,7 +1,7 @@
-package Monkey;
+//package Monkey;
 
-	import java.util.Map;
-	import java.util.HashMap;
+import java.util.Map;
+import java.util.HashMap;
 
 	class Pair<T, U> {
 	    public T value1;
@@ -29,13 +29,18 @@ package Monkey;
         tenjou : 遊タイム天井ゲーム数
         game_yutime : 遊タイムゲーム数
         round_num_ave : 大当たり1回あたりの平均ラウンド数
+
+		chain_aveについて、例えばchain_ave = 4だとすると初当たりを含めた連数となる。
+		北斗無双ならばchain_aveは約5だがそれは初当たりを含めて5連という意味で、確変中の連数単体で見れば4連であることに注意
      **/
 	    
 	    double jack_prob = 199.20;
 	    double jack_prob_denchu = 7.67;
 	    double normal_prob = through_prob(7.67, 5)*0.96*100;
 	    double kakuhen_prob = (1-normal_prob/100)*100;
-	    double chain_ave = 1/(1-(1-((through_prob(7.67, 11))*0.93)+(through_prob(7.67, 255))*0.07));
+		double tmp11 = 1-through_prob(7.67, 11);
+		double tmp255 = 1-through_prob(7.67, 255);
+	    double chain_ave = 1/(1-(tmp11*0.93+tmp255*0.07));
 	    double tenjou = 500;
 	    double game_yutime = 255;
 
@@ -59,8 +64,6 @@ package Monkey;
 	        this.NB.put(4, R4);
 	        this.NB.put(10, R10);
 	    }
-
-	    
 
 	    // DBはDnchu Bonusで電チュー時の当たりを指す
 	    double DB_3R_prob = 0.3;
@@ -91,7 +94,9 @@ package Monkey;
 	        }
 	       
 	        //遊タイム中以外で大当たりした場合の平均ラウンド数
-	        double round_num_outyutime = round_num_normal*normal_prob/100 + (round_num_kakuhen* (chain_ave-1)+round_num_normal)*kakuhen_prob/100;
+			// 通常はnormal_probの確率で4Rのみ。
+			// 確変は4%で10R + round_num_kakuhen、1-through_prob(7.67, 5)*0.96%でround_num_kakuhen*chain_ave+round_num_normal
+	        double round_num_outyutime = 4*normal_prob/100 + (10 + round_num_kakuhen*chain_ave)*0.04 + (round_num_kakuhen*chain_ave + round_num_normal)*(1-through_prob(7.67, 5))*0.96;
 	        
 	        //遊タイム中に大当たりした場合の平均ラウンド数
 	        double round_num_inyutime = round_num_kakuhen*(chain_ave-1)+round_num_kakuhen;
@@ -109,8 +114,7 @@ package Monkey;
 	        for(Integer round : DB.keySet()){
 	            dedama_per_kakuhen += DB.get(round).first()* DB.get(round).second();
 	        }
-	        dedama_per_kakuhen *= (chain_ave-1);
-	        //dedama_per_kakuhen += NB.get(4).first()*0.96+ NB.get(10).first()*0.04;
+	        dedama_per_kakuhen *= (chain_ave);
 	    }
 	    
 	    /**
@@ -145,7 +149,11 @@ package Monkey;
 	     */
 
 	    double getDedama_per_jack(){
-	    	double dedama_tyokugekikomi = (((dedama_per_kakuhen+NB.get(4).first()) * (1-through_prob(7.67, 5)) + NB.get(4).first()*normal_prob/100)+(dedama_per_kakuhen+NB.get(10).first())*0.04);
+			double normal = NB.get(4).first()*normal_prob/100; 
+			double R4kara_kakuhen = (dedama_per_kakuhen+NB.get(4).first()) * (1-through_prob(7.67, 5)) * 0.96;
+			double R10kara_kakuhen = (dedama_per_kakuhen*(chain_ave-1)/chain_ave+NB.get(10).first())*0.04;
+
+	    	double dedama_tyokugekikomi = R4kara_kakuhen + normal+ R10kara_kakuhen;
 	        return dedama_tyokugekikomi*(1-jack_prob_yutime)+(Calc_dedama_per_kakuhen_yutime()*jack_prob_yutime);    
 	    }
 
